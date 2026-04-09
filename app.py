@@ -12,6 +12,12 @@ from vector_store import (
 from retriever import search
 from generator import generate_answer   # reuse function
 
+if "processed" not in st.session_state:
+    st.session_state.processed = False
+
+if "last_file" not in st.session_state:
+    st.session_state.last_file = None
+
 st.set_page_config(page_title="Document QA System", layout="wide")
 
 st.title("Retrieval-Augmented AI for Document QA")
@@ -30,29 +36,44 @@ def get_embedding_model():
 def get_index():
     return load_index()
 
-# PROCESS DOCUMENT (uses existing functions)
+# PROCESS DOCUMENT
 if uploaded_file is not None:
     with open("data/temp.pdf", "wb") as f:
         f.write(uploaded_file.read())
 
     st.sidebar.success("File uploaded!")
 
-    if st.sidebar.button("Process Document"):
-        if "processed" not in st.session_state: #what happens if i try to process same doc again?
-            st.session_state.processed = False
+    # Detect new file
+    if st.session_state.last_file != uploaded_file.name:
+        st.session_state.processed = False
+        st.session_state.last_file = uploaded_file.name
 
+    # Show button (disabled if already processed)
+    process_clicked = st.sidebar.button(
+        "Process Document",
+        disabled=st.session_state.processed
+    )
+
+    if process_clicked:
         with st.spinner("Processing..."):
             docs = load_pdf("data/temp.pdf")
             chunks = split_text(docs)
 
-            model = load_embedding_model()
+            model = get_embedding_model()   # use cached model
             embeddings, texts = create_embeddings(model, chunks)
 
             index = store_in_faiss(embeddings)
             save_index(index, texts)
 
-        st.sidebar.success("Document processed!")
+        # Update state
         st.session_state.processed = True
+
+        # FORCE UI REFRESH (IMPORTANT)
+        st.rerun()
+
+    # Show ONLY ONE message
+    elif st.session_state.processed:
+        st.sidebar.success("Document processed")
 
 # LOAD INDEX (reuse)
 if os.path.exists("vectorstore/index.faiss"):

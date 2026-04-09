@@ -5,7 +5,20 @@ def generate_answer(query, retrieved_docs):
     context = "\n\n".join(retrieved_docs)
 
     prompt = f"""
-    Use the following context to answer the question.
+    You are a document question-answering assistant.
+
+    Answer the question using ONLY the given context.
+
+    Rules:
+    - Answer in plain English 
+    - Do NOT generate code or structured formatting
+    - Do NOT include any labels or symbols like "##OUTPUT"
+    - Give a short, clear explanation (2–4 sentences), unless asked for detail
+    - Do NOT repeat the answer
+    - Do NOT generate solutions, or programming content
+    - If the answer is not clearly present, say:
+    "The document does not explicitly mention this." 
+    Do not make up any answer.
 
     Context:
     {context}
@@ -15,10 +28,9 @@ def generate_answer(query, retrieved_docs):
 
     Answer:
     """
-    #push to git the model change to phi
+    
     response = ollama.chat(
-        #model='mistral',
-        model='phi',
+        model='mistral',
         messages=[{"role": "user", "content": prompt}]
     )
 
