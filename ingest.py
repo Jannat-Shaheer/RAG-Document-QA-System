@@ -1,27 +1,31 @@
+"""PDF loading and chunking."""
+
+import logging
+
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# Step 1: Load PDF
+import config
+
+# pypdf logs a warning per page when a PDF's /PageLabels table is malformed;
+# we only use the numeric page index, so quiet it down.
+logging.getLogger("pypdf").setLevel(logging.ERROR)
+
+
 def load_pdf(file_path):
-    loader = PyPDFLoader(file_path)
-    documents = loader.load()
+    """Load a PDF into a list of page documents."""
+    documents = PyPDFLoader(str(file_path)).load()
+    if not any(doc.page_content.strip() for doc in documents):
+        raise ValueError(
+            "No extractable text found in the PDF (it may be scanned images)."
+        )
     return documents
 
-# Step 2: Split text into chunks
+
 def split_text(documents):
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50
+    """Split page documents into overlapping character chunks."""
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=config.CHUNK_SIZE,
+        chunk_overlap=config.CHUNK_OVERLAP,
     )
-    chunks = text_splitter.split_documents(documents)
-    return chunks
-
-# if __name__ == "__main__":
-#     file_path = "data/Essay[1].pdf"
-
-#     docs = load_pdf(file_path)
-#     chunks = split_text(docs)
-
-#     print(f"Total chunks created: {len(chunks)}")
-#     print("\nExample chunk:\n")
-#     print(chunks[0].page_content)
+    return splitter.split_documents(documents)

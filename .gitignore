@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+data/
+vectorstore/
+evaluation.py
+
 # C extensions
 *.so
 

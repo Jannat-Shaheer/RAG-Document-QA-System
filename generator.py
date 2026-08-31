@@ -1,58 +1,81 @@
+"""Answer generation with a local Ollama LLM."""
+
 import ollama
 
-# Step 1: Generate answer using LLM
-def generate_answer(query, retrieved_docs):
-    context = "\n\n".join(retrieved_docs)
+import config
 
-    prompt = f"""
-    You are a document question-answering assistant.
+_NO_CONTEXT_MSG = "No relevant information found in the document."
+_NOT_IN_DOC = "The document does not contain this information."
 
-    Answer the question using ONLY the given context.
+_PROMPT_TEMPLATE = """You answer questions using the provided context from a document.
 
-    Rules:
-    - Answer in plain English 
-    - Do NOT generate code or structured formatting
-    - Do NOT include any labels or symbols like "##OUTPUT"
-    - Give a short, clear explanation (2–4 sentences), unless asked for detail
-    - Do NOT repeat the answer
-    - Do NOT generate solutions, or programming content
-    - If the answer is not clearly present, say:
-    "The document does not explicitly mention this." 
-    Do not make up any answer.
+Guidelines:
+- Base the answer only on the context below. You may combine facts stated across
+  several chunks; the answer does not need to appear verbatim.
+- Only if the context has nothing relevant to the question, reply exactly:
+  "{not_in_doc}"
+- Be clear and concise (2-5 sentences); use a short list if the answer enumerates items.
 
-    Context:
-    {context}
+Context:
+{context}
 
-    Question:
-    {query}
+Question:
+{query}
 
-    Answer:
-    """
-    
-    response = ollama.chat(
-        model='mistral',
-        messages=[{"role": "user", "content": prompt}]
+Answer:"""
+
+
+def _format_context(chunks):
+    parts = []
+    for i, chunk in enumerate(chunks, 1):
+        page = chunk.get("page")
+        tag = f"[chunk {i}" + (f", page {page + 1}]" if page is not None else "]")
+        parts.append(f"{tag}\n{chunk['content']}")
+    return "\n\n".join(parts)
+
+
+def _build_prompt(query, chunks):
+    return _PROMPT_TEMPLATE.format(
+        not_in_doc=_NOT_IN_DOC,
+        context=_format_context(chunks),
+        query=query,
     )
 
-    return response['message']['content']
+
+def _error_message(exc):
+    if isinstance(exc, ollama.ResponseError):
+        return (
+            f"LLM error: {exc.error}. Is the '{config.LLM_MODEL}' model pulled? "
+            f"Try: ollama pull {config.LLM_MODEL}"
+        )
+    return "Cannot reach Ollama. Start it with `ollama serve` and try again."
 
 
-# if __name__ == "__main__":
+def generate_answer(query, chunks):
+    """Generate an answer from retrieved chunks (list of dicts with 'content')."""
+    if not chunks:
+        return _NO_CONTEXT_MSG
+    try:
+        response = ollama.chat(
+            model=config.LLM_MODEL,
+            messages=[{"role": "user", "content": _build_prompt(query, chunks)}],
+        )
+    except (ollama.ResponseError, ConnectionError) as e:
+        return _error_message(e)
+    return response["message"]["content"].strip()
 
-#     # Load model
-#     model = load_embedding_model()
 
-#     # Load FAISS (instead of rebuilding)
-#     index, texts = load_index()
-
-#     # Query
-#     query = "What is the applicant's applying for?"
-
-#     # Retrieve
-#     retrieved_docs = search(query, model, index, texts)
-
-#     # Generate answer
-#     answer = generate_answer(query, retrieved_docs)
-
-#     print("\nQuestion:", query)
-#     print("\nAnswer:\n", answer)
+def stream_answer(query, chunks):
+    """Yield the answer incrementally, for a responsive UI (st.write_stream)."""
+    if not chunks:
+        yield _NO_CONTEXT_MSG
+        return
+    try:
+        for part in ollama.chat(
+            model=config.LLM_MODEL,
+            messages=[{"role": "user", "content": _build_prompt(query, chunks)}],
+            stream=True,
+        ):
+            yield part["message"]["content"]
+    except (ollama.ResponseError, ConnectionError) as e:
+        yield _error_message(e)

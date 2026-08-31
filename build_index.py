@@ -1,20 +1,42 @@
+"""Build the FAISS index from a PDF, offline.
+
+Usage:
+    python build_index.py data/EffectiveProjectManagement_Wysocki.pdf
+"""
+
+import sys
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+import config
 from ingest import load_pdf, split_text
-from vector_store import load_embedding_model, create_embeddings, store_in_faiss, save_index
+from vector_store import (
+    create_embeddings,
+    load_embedding_model,
+    save_index,
+    store_in_faiss,
+)
 
-# Load document
-docs = load_pdf("data/Essay[1].pdf")
 
-# Chunk
-chunks = split_text(docs)
+def build(pdf_path):
+    print(f"Loading {pdf_path} ...")
+    chunks = split_text(load_pdf(pdf_path))
+    print(f"  {len(chunks)} chunks")
 
-# Embeddings
-model = load_embedding_model()
-embeddings, texts = create_embeddings(model, chunks)
+    print("Embedding ...")
+    model = load_embedding_model()
+    embeddings, records = create_embeddings(model, chunks)
 
-# FAISS
-index = store_in_faiss(embeddings)
+    print("Building FAISS index ...")
+    index = store_in_faiss(embeddings)
+    save_index(index, records)
 
-# SAVE (IMPORTANT)
-save_index(index, texts)
+    print(f"Saved index ({index.ntotal} vectors) to {config.INDEX_PATH}")
 
-print("Index built and saved successfully!")
+
+if __name__ == "__main__":
+    path = sys.argv[1] if len(sys.argv) > 1 else str(
+        config.DATA_DIR / "EffectiveProjectManagement_Wysocki.pdf"
+    )
+    build(path)
