@@ -14,6 +14,7 @@ DATA_DIR = BASE_DIR / "data"
 VECTORSTORE_DIR = BASE_DIR / "vectorstore"
 
 INDEX_PATH = VECTORSTORE_DIR / "index.faiss"
+EMB_PATH = VECTORSTORE_DIR / "embeddings.npy"
 TEXTS_PATH = VECTORSTORE_DIR / "texts.pkl"
 UPLOAD_PATH = DATA_DIR / "temp.pdf"
 

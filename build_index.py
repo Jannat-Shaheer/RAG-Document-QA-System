@@ -11,12 +11,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import config
 from ingest import load_pdf, split_text
-from vector_store import (
-    create_embeddings,
-    load_embedding_model,
-    save_index,
-    store_in_faiss,
-)
+from vector_store import create_embeddings, load_embedding_model, save_store
 
 
 def build(pdf_path):
@@ -29,10 +24,9 @@ def build(pdf_path):
     embeddings, records = create_embeddings(model, chunks)
 
     print("Building FAISS index ...")
-    index = store_in_faiss(embeddings)
-    save_index(index, records)
+    save_store(embeddings, records)
 
-    print(f"Saved index ({index.ntotal} vectors) to {config.INDEX_PATH}")
+    print(f"Saved index ({len(records)} vectors) to {config.INDEX_PATH}")
 
 
 if __name__ == "__main__":

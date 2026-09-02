@@ -5,10 +5,11 @@ from ingest import load_pdf, split_text
 from vector_store import (
     load_embedding_model,
     create_embeddings,
-    store_in_faiss,
-    extend_index,
-    save_index,
+    save_store,
+    add_to_store,
     load_index,
+    list_documents,
+    remove_document,
     index_exists,
 )
 from retriever import search
@@ -58,9 +59,9 @@ if uploaded_file is not None:
                 model = get_embedding_model()
                 embeddings, records = create_embeddings(model, chunks)
                 if mode == "Add to index" and index_exists():
-                    _, all_records = extend_index(embeddings, records)
+                    all_records = add_to_store(embeddings, records)
                 else:
-                    save_index(store_in_faiss(embeddings), records)
+                    save_store(embeddings, records)
                     all_records = records
             get_index.clear()  # drop the stale cached index
             st.session_state.processed = True
@@ -72,6 +73,28 @@ if uploaded_file is not None:
             st.sidebar.error(f"Could not process document: {e}")
     elif st.session_state.processed:
         st.sidebar.success("Document processed")
+
+# --- Sidebar: indexed documents -------------------------------------------
+st.sidebar.divider()
+st.sidebar.header("Indexed Documents")
+
+documents = list_documents()
+if not documents:
+    st.sidebar.caption("Nothing indexed yet.")
+for source, count in documents:
+    row = st.sidebar.columns([0.78, 0.22], vertical_alignment="center")
+    row[0].write(f"{source}  \n:gray[{count} chunks]")
+    if row[1].button("✕", key=f"rm_{source}", help=f"Remove {source} from the index"):
+        try:
+            remaining = remove_document(source)
+            get_index.clear()
+            st.session_state.processed = False
+            st.session_state.last_file = None
+            msg = "Removed all documents." if not remaining else f"Removed {source}."
+            st.sidebar.success(msg)
+        except FileNotFoundError as e:
+            st.sidebar.error(str(e))
+        st.rerun()
 
 # --- Main: ask questions -------------------------------------------------------
 if not index_exists():

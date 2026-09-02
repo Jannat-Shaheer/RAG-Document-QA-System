@@ -1,0 +1,158 @@
+{
+  "_meta": {
+    "relevance_rule": "A retrieved chunk is 'relevant' to a query if it contains at least 2 distinct expected keywords (case-insensitive substring match). Keyword lists are approximate proxies for the gold passage, chosen to be specific enough that a chunk matching >=2 is almost certainly on-topic.",
+    "note": "Keyword-based ground truth, expanded set. Not manually labelled gold passages."
+  },
+  "queries": [
+    {
+      "doc": "transformer.pdf",
+      "doc_type": "research paper",
+      "query": "What network architecture does the paper propose and what does it use instead of recurrence and convolutions?",
+      "keywords": ["Transformer", "attention", "recurrence", "convolutions", "self-attention"]
+    },
+    {
+      "doc": "transformer.pdf",
+      "doc_type": "research paper",
+      "query": "How is scaled dot-product attention computed?",
+      "keywords": ["scaled dot-product", "softmax", "dot product", "keys", "queries", "dimension"]
+    },
+    {
+      "doc": "transformer.pdf",
+      "doc_type": "research paper",
+      "query": "How many layers and attention heads does the base model use?",
+      "keywords": ["N = 6", "identical layers", "h = 8", "heads", "parallel attention"]
+    },
+    {
+      "doc": "transformer.pdf",
+      "doc_type": "research paper",
+      "query": "What BLEU score does the big Transformer reach on WMT 2014 English-to-German translation?",
+      "keywords": ["28.4", "BLEU", "English-to-German", "WMT 2014", "state of the art"]
+    },
+    {
+      "doc": "transformer.pdf",
+      "doc_type": "research paper",
+      "query": "How does the model encode the order of the sequence without recurrence?",
+      "keywords": ["positional encodings", "sine", "cosine", "frequencies", "position"]
+    },
+    {
+      "doc": "rag_paper.pdf",
+      "doc_type": "research paper",
+      "query": "What two kinds of memory does the RAG model combine?",
+      "keywords": ["parametric", "non-parametric", "pre-trained", "retrieval", "Wikipedia"]
+    },
+    {
+      "doc": "rag_paper.pdf",
+      "doc_type": "research paper",
+      "query": "What retriever component does RAG use to fetch documents?",
+      "keywords": ["Dense Passage Retriever", "DPR", "bi-encoder", "BERT", "MIPS"]
+    },
+    {
+      "doc": "rag_paper.pdf",
+      "doc_type": "research paper",
+      "query": "What is the difference between RAG-Sequence and RAG-Token models?",
+      "keywords": ["RAG-Sequence", "RAG-Token", "same document", "each target token", "marginalize"]
+    },
+    {
+      "doc": "rag_paper.pdf",
+      "doc_type": "research paper",
+      "query": "Which generator model does RAG build on?",
+      "keywords": ["BART", "seq2seq", "generator", "400M", "pre-trained"]
+    },
+    {
+      "doc": "rag_paper.pdf",
+      "doc_type": "research paper",
+      "query": "On which open-domain question answering datasets is RAG evaluated?",
+      "keywords": ["Natural Questions", "TriviaQA", "WebQuestions", "CuratedTrec", "open-domain QA"]
+    },
+    {
+      "doc": "nist_ai_rmf.pdf",
+      "doc_type": "government report",
+      "query": "What are the four core functions of the AI Risk Management Framework?",
+      "keywords": ["Govern", "Map", "Measure", "Manage", "functions"]
+    },
+    {
+      "doc": "nist_ai_rmf.pdf",
+      "doc_type": "government report",
+      "query": "What characteristics define trustworthy AI in the framework?",
+      "keywords": ["valid and reliable", "safe", "secure and resilient", "accountable and transparent", "explainable", "privacy-enhanced", "fair"]
+    },
+    {
+      "doc": "nist_ai_rmf.pdf",
+      "doc_type": "government report",
+      "query": "Who developed the AI RMF and is it mandatory?",
+      "keywords": ["NIST", "voluntary", "Congress", "non-sector-specific", "use-case agnostic"]
+    },
+    {
+      "doc": "nist_ai_rmf.pdf",
+      "doc_type": "government report",
+      "query": "What does the Govern function of the framework cultivate?",
+      "keywords": ["culture", "risk management", "policies", "processes", "accountability structures"]
+    },
+    {
+      "doc": "nist_ai_rmf.pdf",
+      "doc_type": "government report",
+      "query": "How does the framework define an AI system's potential harms?",
+      "keywords": ["harm to people", "harm to an organization", "harm to a system", "civil liberties", "environment"]
+    },
+    {
+      "doc": "art_of_war.pdf",
+      "doc_type": "classic prose",
+      "query": "What are the five constant factors that govern the art of war?",
+      "keywords": ["Moral Law", "Heaven", "Earth", "Commander", "Method and discipline"]
+    },
+    {
+      "doc": "art_of_war.pdf",
+      "doc_type": "classic prose",
+      "query": "What does Sun Tzu say about knowing the enemy and knowing yourself?",
+      "keywords": ["know the enemy", "know yourself", "hundred battles", "the result of a hundred", "fear"]
+    },
+    {
+      "doc": "art_of_war.pdf",
+      "doc_type": "classic prose",
+      "query": "According to Sun Tzu, what is the acme of skill in warfare?",
+      "keywords": ["supreme excellence", "break the enemy's resistance", "without fighting", "acme of skill", "fighting and conquering"]
+    },
+    {
+      "doc": "art_of_war.pdf",
+      "doc_type": "classic prose",
+      "query": "What does Sun Tzu say about prolonged or lengthy military campaigns?",
+      "keywords": ["long delays", "no instance", "prolonged warfare", "benefited", "dulled"]
+    },
+    {
+      "doc": "art_of_war.pdf",
+      "doc_type": "classic prose",
+      "query": "What are the five classes of spies described in the chapter on the use of spies?",
+      "keywords": ["local spies", "inward spies", "converted spies", "doomed spies", "surviving spies"]
+    },
+    {
+      "doc": "EffectiveProjectManagement_Wysocki.pdf",
+      "doc_type": "technical book",
+      "query": "What are the five Process Groups defined in the PMBOK and used in this book?",
+      "keywords": ["Scoping", "Planning", "Launching", "Monitoring", "Controlling", "Closing"]
+    },
+    {
+      "doc": "EffectiveProjectManagement_Wysocki.pdf",
+      "doc_type": "technical book",
+      "query": "What are the four quadrants of the project management landscape based on goal and solution clarity?",
+      "keywords": ["Traditional", "Agile", "Extreme", "Emertxe", "goal", "solution"]
+    },
+    {
+      "doc": "EffectiveProjectManagement_Wysocki.pdf",
+      "doc_type": "technical book",
+      "query": "What are the five Project Management Life Cycle models presented in the book?",
+      "keywords": ["Linear", "Incremental", "Iterative", "Adaptive", "Extreme"]
+    },
+    {
+      "doc": "EffectiveProjectManagement_Wysocki.pdf",
+      "doc_type": "technical book",
+      "query": "What is the purpose of the Conditions of Satisfaction and the Project Overview Statement?",
+      "keywords": ["Conditions of Satisfaction", "Project Overview Statement", "scope", "client", "agreement"]
+    },
+    {
+      "doc": "EffectiveProjectManagement_Wysocki.pdf",
+      "doc_type": "technical book",
+      "query": "What criteria test an activity for completeness in a Work Breakdown Structure?",
+      "keywords": ["measurable", "bounded", "deliverable", "estimated", "duration", "independent"]
+    }
+  ]
+}

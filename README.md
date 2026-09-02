@@ -22,12 +22,15 @@ PDF ──► ingest.py ──► vector_store.py ──► FAISS index (vectors
 |------|----------------|
 | `config.py` | All tunable parameters (paths, chunk size, model names, `k`, threshold). Override via `RAG_*` env vars. |
 | `ingest.py` | Load a PDF and split it into overlapping chunks. |
-| `vector_store.py` | Embed chunks, build / save / load / extend the FAISS index. |
+| `vector_store.py` | Embed chunks; build / load / add-to / remove-from the FAISS store (`index.faiss` + `embeddings.npy` + `texts.pkl`). |
 | `retriever.py` | Embed the query and return the top-k chunks above the similarity threshold. |
 | `generator.py` | Build a grounded prompt from the chunks and call the Ollama LLM. |
-| `app.py` | Streamlit UI: upload, process (replace or append), ask, view sources. |
+| `app.py` | Streamlit UI: upload, process (replace or append), list/remove indexed docs, ask, view sources. |
 | `build_index.py` | Build the index from a PDF on the command line. |
-| `evaluation.py` | Offline retrieval + answer metrics over a set of test questions. |
+| `evaluation.py` | End-to-end retrieval + answer metrics over the shared corpus, by document type (needs Ollama). |
+| `benchmark.py` | Retrieval-only ablation: embedding model × chunk size, Recall@k / MRR / nDCG. See [`EVALUATION.md`](EVALUATION.md). |
+| `eval/corpus.py` | Shared corpus definition + chunking + cached embeddings, used by both eval scripts. |
+| `eval/build_corpus.py` | Fetch the 5-document, 4-type evaluation corpus. |
 
 ## Setup
 
@@ -51,7 +54,9 @@ streamlit run app.py
 
 Upload a PDF, click *Process Document*, then ask questions. The answer streams in
 token by token. Choose *Add to index* to keep earlier documents searchable in the
-same collection.
+same collection. The **Indexed Documents** panel in the sidebar lists everything
+currently searchable; click ✕ next to a document to drop its chunks from the
+context (the index is rebuilt from the cached embeddings, no re-embedding).
 
 > On CPU, `mistral` takes 1-3 min per answer. Set `RAG_LLM_MODEL=llama3.2:3b` for
 > ~3x faster responses (at the cost of more "not in the document" refusals).
@@ -64,18 +69,33 @@ python build_index.py data/your_document.pdf
 
 **Evaluation**
 
+Both layers run over the **same shared corpus** — five public-domain documents of
+four types (2 research papers, a government report, a technical book, classic
+prose), defined in [`eval/corpus.py`](eval/corpus.py) with 25 labelled queries in
+[`eval/queries.json`](eval/queries.json). Neither script is tied to a single book.
+
 ```bash
-python evaluation.py            # retrieval + answer keyword metrics
-python evaluation.py --judge    # also grade answers with an LLM judge
+python eval/build_corpus.py     # once: fetch the corpus
+
+# 1. Retrieval-only ablation (no LLM): embedding model x chunk size
+python benchmark.py             # -> eval/results*.{csv,md}, eval/figures/
+python benchmark.py --quick
+
+# 2. End-to-end (needs Ollama): retrieval + answer keyword recall + LLM judge,
+#    aggregated by document type
+python evaluation.py --quick            # first 5 queries
+python evaluation.py --judge            # all 25 (~2 min/query on CPU)
+python evaluation.py --docs transformer.pdf,rag_paper.pdf
 ```
 
-Reports:
-- *Retrieval hit@k* – a relevant keyword appeared in the retrieved chunks
-- *Retrieval keyword recall* – fraction of expected keywords retrieved
-- *Answer keyword recall* – fraction of expected keywords in the final answer
-- *Avg latency* – seconds per query (retrieval + generation)
+The retrieval ablation is written up in **[`EVALUATION.md`](EVALUATION.md)**.
+Headline: chunk size matters more than embedding-model choice; a 384-dim model
+(`bge-small-en-v1.5` @ 1536/192) tops the grid at Recall@5 = 0.88 / MRR@10 = 0.79;
+retrieval is near-perfect on structured documents but preprocessing-bound on
+heavily foot-noted prose (Recall@5 = 0.40).
 
-Edit `TEST_CASES` in `evaluation.py` to match your document.
+Add your own documents to `CORPUS` in `eval/corpus.py` and queries to
+`eval/queries.json`.
 
 ## Configuration
 
